@@ -1,0 +1,104 @@
+git是一个开源的分布式版本控制系统，不必服务端软件支持。
+用途：不同的任务组在不同的分支上开发，互不影响，提高效率；在项目上添加新功能，使用分支开发，完毕后再合并到主分支（master上运行稳定代码）；规范了软件开发流程
+
+一、git配置
+.git目录位置 ~/.git
+环境变量存放位置：~/.gitconfig（可以直接cat查看）
+配置个人信息：git config --global user.name "xxx"
+          git config --global user.email xxx@xxx.com
+查看配置信息：git config --list
+
+二、工作流程（看图）
+克隆Git资源作为工作目录；在克隆的资源上增加或修改文件；如果其他人修改了，可以更新资源；
+在提交前查看更改；提交修改；修改完成后，若发现错误，可以撤回提交并再次修改。
+
+三、基本概念（看图）
+1、工作区：电脑里能看见的目录
+2、暂存区/索引（stage或index）：一般情况下在 .git 目录下的index文件中（.git/index），临时保存改动的区域
+3、版本库（HEAD）：工作区里的一个隐藏目录 .git ，指向最后一次提交的结果
+
+工作区修改或增加的文件执行（git add）命令时，暂存区目录树被更新，同时工作区修改或增加的文件被写到对象库中的一个新对象中，该对象的id被记录在暂存区的文件索引中。
+当提交（git commit）时，暂存区的目录树写到版本库（对象库）中，master分支做相应更新。（即master指向的目录树就是提交时暂存的目录树）。
+当执行 git reset HEAD 时，暂存区目录树被重写，被master分支指向的目录树所替换，但工作区不受影响。
+当执行 git rm --cached <file> 时，会直接从暂存区删除文件，工作区不做改变。
+当执行 git checkout . 或 git checkout -- <file> 时，暂存区全部或指定文件会替换工作区的文件。此操作会清除工作区尚未添加到暂存区的改动。（很危险）
+当执行 git checkout HEAD . 或git checkout HEAD -- <file> 时，会用HEAD所指向的master分支中的全部或部分文件替换暂存区以及工作区文件。此操作会清除暂存区和工作区未提交的改动。（很危险）
+
+四、本地仓库基本操作
+git init  以当前目录创建仓库。会生成一个 .git目录，包含所有元资源，其他项目保持不变。
+git clone <repo>  从Git仓库克隆一个项目。（git clone <repo> <dictionary>）克隆到指定目录
+    如 git clone git@github.com:gagaga0007/JDIndex.git
+git add 文件名 文件名...  将指定文件添加到缓存（全部添加用 * 或 . ）
+    如将README文件添加到缓存：git add README
+git status  查看项目自上次提交后修改情况
+    git status -s  简短查看状态
+git diff  查看 git status 结果的详细信息。
+    尚未缓存的改动：git diff  已缓存的改动：git diff --cached
+    已缓存与未缓存的所有改动：git diff HEAD  仅显示摘要：git diff --stat
+git commit  将缓存区内容提交到本地仓库中（须在设置用户名和邮箱后）
+    git commit -m 'xxx'  提交注释xxx
+    git commit -am 'xxx'  跳过添加到缓存区并带着注释提交
+git reset HEAD 文件  取消某文件的缓存（取消上一次对 某提交到缓存区但未提交的文件 的操作）
+git rm 文件  从仓库中删除某已提交的文件
+    git rm -f 文件  删除之前修改过并已放到暂存区的文件
+    git rm --cached 文件  将文件仅从暂存区删除，但保存在工作目录中
+    git rm -r 目录  递归删除目录中的全部文件
+    如果 git rm 文件名 删除了某文件且未提交（这个命令会使暂存区的文件也删除掉了，所以通过上次提交的恢复），
+      可以通过 git checkout HEAD 文件名 来恢复该文件。
+    如果 rm 文件名 删除了某文件（这个命令不会删除暂存区文件，所以通过恢复暂存区文件即可），
+      可以通过 git checkout 文件名 来恢复该文件。
+git mv 文件名  新文件名 重命名某文件（若是目录名则是移动文件到该目录中）
+
+五、分支
+可以从开发主线上分离出来，在不影响主线的同时继续工作。
+分类：本地分支：保存在本地、自己平时操作的分支；
+    远程分支：存储于远程仓库上的分支；
+    远程跟踪分支：是对远程仓库的引用（指针），保存在本地的，无法修改，每当本地与远程做出通信就会更新。
+git branch 名称  创建分支
+    无参数：列出本地分支
+    -d 分支名  删除分支（分支合并后使用）
+    -D 分支名  删除分支（无论是否合并，强制删除）
+    -a  列出所有分支（本地分支、远程跟踪分支）
+git checkout 名称  切换分支（此时会用该分支最后提交的快照替换工作目录，所以多个分支不需要多个目录）
+    -b 名称  创建分支并立即切换到该分支
+git merge 分支名  将某分支合并到当前分支（可以多次合并到统一分支，也可以合并后删除并入的分支）
+    此操作会将要合并的分支文件全部覆盖到当前分支，包括删除的文件也会在该分支内一并删除
+    文件的修改内容会被合并，需要合并分支后手动修改文件内容，再通过 add 命令告诉 git 冲突已解决。
+
+六、查看提交历史
+git log  查看历史提交记录（空格翻页，按q退出）
+    --oneline  查看简洁版本
+    --graph  查看何时出现分支、合并
+    --reverse  逆向显示记录
+    --author=用户名  显示某用户的记录 如 git log --author=Lina
+    --since / --before / --after / --until  指定日期
+      如 git log --oneline --before={3.week.ago} --after={2010-04-18} 
+        简洁查看三周前且在2010-04-18后的记录
+
+七、标签
+在项目达到一个重要阶段（如一个版本），就可以使用tag给它打上标签，表示一个特别的提交快照。
+tag就是版本库的一个快照，实际上tag就是指向某个commit的指针，所以创建tag和删除tag都是瞬间完成的。
+分支可以移动，tag不可移动。
+
+git tag 版本号  添加标签（指向最新提交的commit号）
+git tag -a 版本号 -m 文本  添加标签并指定注释文本
+git tag -a 版本号 commit号  给某个commit号增添标签
+    如给4d20183加版本号v0.1的标签：git tag -a v0.1 4d20183
+git tag  查看已有标签
+git tag -d 版本号  删除某个标签
+git show 版本号  查看某个版本所做出的修改
+
+八、操作GitHub
+git remote add 短名字 url  指定一个短名字方便以后引用
+git fetch origin  从远程仓库下载新分支和数据（执行后使用 git merge 合并到当前所在的分支）
+git merge origin/master  从远程仓库提取数据并尝试合并到当前分支（更新同步到本地仓库）
+git push origin master  推送本地master到origin远程仓库
+
+各语句部分含义：
+  master：本地某个分支名，master
+  origin master：origin代表远程名，master代表远程分支名
+  origin/master：代表远程origin的master分支
+  举例子：
+    git fetch origin master：从叫origin的远程上拉取master分支到本地的origin/master分支中。
+    git merge origin/master：将上面拉取到本地的origin/master分支合并到当前所在分支中。
+    git push origin master：推送本地的master到远程origin。
